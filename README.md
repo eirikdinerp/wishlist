@@ -24,7 +24,9 @@ Todo app
 
 * http://blog.jenkster.com/2016/04/how-i-structure-elm-apps.html
 
+* https://dev.to/rtfeldman/tour-of-an-open-source-elm-spa
 
+* https://github.com/rtfeldman/elm-spa-example
 
 ## WIP
 * Create two modules, one for Wish and one for User

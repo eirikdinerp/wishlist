@@ -75,10 +75,6 @@ draftWish =
 
 
 
-
-
-
-
 newWish : Int -> String -> String -> Int-> Wish
 newWish uid_ desc_ url_ listId_ =
     { description = desc_
@@ -93,8 +89,8 @@ isWishInvalid wish =
     String.isEmpty wish.description
 
 isNameInvalid : WishList -> Bool 
-isNameInvalid name = 
-    String.isEmpty name.name
+isNameInvalid wishList = 
+    String.isEmpty wishList.name
 
 
 -- UPDATE
@@ -112,9 +108,12 @@ type Msg
     | DeleteWish Int
     | ClearInput 
     | RemoveAll
-    | CreateList String
+    | CreateList Int
     | AddList
     | UpdateDraftName String
+    | UpdateList Int WishList
+    | UpdateListDescription Int String
+    | DeleteList Int
 
 
 
@@ -224,21 +223,21 @@ update msg model =
             ({ model | wishes = []}, Cmd.none)
         CreateList uid ->
             let
-                wish =
-                    model.draftWish
+                wishList =
+                    model.draftList
             in
                 ( { model
                     | wishLists =
-                        if isNameInvalid draftList then
+                        if isNameInvalid wishList then
                             model.wishLists
                         else
-                            model.wishLists
+                            model.wishLists ++ [ newList wishList.name wishList.wishes uid]
                     , draftList = draftList
                   }
                 , Cmd.none
                 )
         AddList ->
-            ( model, Random.generate CreateWish (Random.int 1 100) )
+            ( model, Random.generate CreateList (Random.int 1 100) )
         UpdateDraftName name ->
             let
                 currentDraft =
@@ -252,6 +251,26 @@ update msg model =
                   }
                 , Cmd.none
                 )
+        UpdateList uid wishList ->
+            let
+                updateList w =
+                    if w.listId == uid then
+                        { w | name = wishList.name }
+                    else
+                        w
+            in
+                ( { model | wishLists = List.map updateList model.wishLists }, Cmd.none )
+        UpdateListDescription uid desc ->
+            let
+                updateList w =
+                    if w.listId == uid then
+                        { w | name = desc }
+                    else
+                        w
+            in
+                ( { model | wishLists = List.map updateList model.wishLists }, Cmd.none )
+        DeleteList listId ->
+            ( { model | wishLists = List.filter (\t -> t.listId /= listId) model.wishLists }, Cmd.none )
 
 
 
@@ -271,8 +290,8 @@ subscriptions model =
 view : Model -> Html.Html Msg 
 view model =
     div [ style [ ( "padding", "20px" ) ] ]
-        [ viewWishes model
-        , viewWishLists model
+        [ viewWishLists model
+        , viewWishes model
         ]
 
 viewWishLists : Model -> Html Msg
@@ -287,10 +306,26 @@ viewWishLists model =
         , input 
             [ placeholder "name"
             , onInput UpdateDraftName 
+            , value model.draftList.name
             ] []
-        , button [][ text "Add"]
+        , button 
+            [ onClick AddList 
+            ]
+            [ text "Add" ]
+        , p []
+            [ text "Your wishlists"
+            ]
+        , ul
+            [ style
+                [ ( "list-style-type", "none" )
+                , ( "padding", "0" )
+                , ( "margin", "0" )
+                ]
+            ]
+            (List.map viewList model.wishLists)
         , div [ style [ ( "margin-top", "60px" ) ] ]
-            [ text (toString model.draftList)
+            [ text (toString model.wishLists)
+            , text (toString model.draftList)
             ]
             ]  
         
@@ -364,7 +399,20 @@ viewWish wish =
             [ text "Delete " ]
         ]
 
-
+viewList : WishList -> Html Msg
+viewList wishList = 
+    li []
+        [ input
+            [ placeholder "Name"
+            , value wishList.name
+            , onInput (UpdateListDescription wishList.listId)
+            ]
+            []
+        , text ("ID: " ++ toString wishList.listId)
+        , button [onClick (DeleteList wishList.listId) ]
+            [ text "Delete " ]
+        , button [][ text "Select" ]
+        ]
 
 
 

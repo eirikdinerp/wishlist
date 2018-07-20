@@ -112,45 +112,13 @@ type Msg
     | DeleteWish Int
     | ClearInput 
     | RemoveAll
-
-type Make 
-    = CreateList String
+    | CreateList String
     | AddList
     | UpdateDraftName String
 
-updateLists : Make -> Model -> ( Model, Cmd Msg )
-updateLists msg model =
-  case msg of
-        CreateList uid ->
-            let
-                wish =
-                    model.draftWish
-            in
-                ( { model
-                    | wishLists =
-                        if isNameInvalid draftList then
-                            model.wishLists
-                        else
-                            model.wishLists
-                    , draftList = draftList
-                  }
-                , Cmd.none
-                )
-        AddList ->
-            ( model, Random.generate CreateWish (Random.int 1 100) )
-        UpdateDraftName name ->
-            let
-                currentDraft =
-                    model.draftList
 
-                newDraft =
-                    { currentDraft | name = name }
-            in
-                ( { model
-                    | draftList = newDraft
-                  }
-                , Cmd.none
-                )
+
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -254,7 +222,36 @@ update msg model =
                 )
         RemoveAll ->
             ({ model | wishes = []}, Cmd.none)
-       
+        CreateList uid ->
+            let
+                wish =
+                    model.draftWish
+            in
+                ( { model
+                    | wishLists =
+                        if isNameInvalid draftList then
+                            model.wishLists
+                        else
+                            model.wishLists
+                    , draftList = draftList
+                  }
+                , Cmd.none
+                )
+        AddList ->
+            ( model, Random.generate CreateWish (Random.int 1 100) )
+        UpdateDraftName name ->
+            let
+                currentDraft =
+                    model.draftList
+
+                newDraft =
+                    { currentDraft | name = name }
+            in
+                ( { model
+                    | draftList = newDraft
+                  }
+                , Cmd.none
+                )
 
 
 
